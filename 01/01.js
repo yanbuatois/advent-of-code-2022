@@ -34,16 +34,13 @@ console.log(`The maximum calories is ${maxCalories.toString().red} !`);
 
 console.timeEnd('part 1');
 console.time('part 2');
-function nbMaxOfArray(array, number = 3) {
-	if (array.length <= number) {
-		return Array.from(array);
-	} else {
-		return nbMaxOfArray(
-			array.filter((elt, index) => index !== array.indexOf(Math.min(...array)), 1),
-			number
-		);
-	}
-}
+const nbMaxOfArray = (array, number = 3) =>
+	array.length <= number
+		? Array.from(array)
+		: nbMaxOfArray(
+				array.filter((elt, index) => index !== array.indexOf(Math.min(...array))),
+				number
+		  );
 const threeMaxCalories = nbMaxOfArray(calories);
 const threeMaxCaloriesSum = threeMaxCalories.reduce((acc, value) => acc + value);
 
