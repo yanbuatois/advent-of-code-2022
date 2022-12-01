@@ -1,0 +1,7 @@
+[*.{js,json,.prettierrc}]
+indent_style = tab
+indent_size = tab
+tab_width = 4
+
+[*.js]
+insert_final_newline = true
