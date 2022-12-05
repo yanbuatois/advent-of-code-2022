@@ -5,3 +5,6 @@ tab_width = 4
 
 [*.js]
 insert_final_newline = true
+
+[input]
+trim_trailing_whitespace = false
