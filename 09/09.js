@@ -19,9 +19,6 @@ const instructions = fs
 		distance: +distance,
 	}));
 
-console.timeEnd('init');
-console.time('part 1');
-
 const moveTail = (head, tail) => {
 	if (Math.abs(head.x - tail.x) <= 1 && Math.abs(head.y - tail.y) <= 1) {
 		return {
@@ -43,52 +40,67 @@ const moveTail = (head, tail) => {
 	return { tail: nextNewTail, visited: [tail, ...visited] };
 };
 
-const handleInstruction = (direction, distance, { tail, head }) => {
+const moveRope = (head, rope) => {
+	const [nextNode, ...remainingRope] = rope;
+	const { visited, tail: nextNewNode } = moveTail(head, nextNode);
+
+	const { visited: nextVisited, rope: nextRope } = remainingRope.length
+		? moveRope(nextNewNode, remainingRope)
+		: {
+				visited,
+				rope: [],
+		  };
+
+	return {
+		visited: nextVisited,
+		rope: [nextNewNode, ...nextRope],
+	};
+};
+
+const handleInstruction = (direction, distance, [head, ...rope]) => {
 	const newHead = {
 		x: head.x + (direction === 'R' ? 1 : direction === 'L' ? -1 : 0),
 		y: head.y + (direction === 'U' ? 1 : direction === 'D' ? -1 : 0),
 	};
 
-	const { tail: newTail, visited } = moveTail(newHead, tail);
+	const { rope: newRope, visited } = moveRope(newHead, rope);
 
-	const newNode = {
-		head: newHead,
-		tail: newTail,
-	};
+	const nextRope = [newHead, ...newRope];
 
-	const { visited: nextVisited, newNode: nextNewNode } =
+	const { visited: nextVisited, newRope: nextNewRope } =
 		distance === 1
 			? {
 					visited: [],
-					newNode,
+					newRope: nextRope,
 			  }
-			: handleInstruction(direction, distance - 1, newNode);
+			: handleInstruction(direction, distance - 1, nextRope);
 
 	return {
-		newNode: nextNewNode,
+		newRope: nextNewRope,
 		visited: [...visited, ...nextVisited],
 	};
 };
 
 const listVisitedCells = (
 	instructions,
-	node = {
-		tail: {
-			x: 0,
-			y: 0,
-		},
-		head: {
-			x: 0,
-			y: 0,
-		},
-	}
+	ropeLength = 2,
+	rope = new Array(ropeLength).fill({
+		x: 0,
+		y: 0,
+	})
 ) => {
 	const [{ direction, distance }, ...remainingInstructions] = instructions;
 
-	const { newNode, visited } = handleInstruction(direction, distance, node);
+	const { newRope, visited } = handleInstruction(direction, distance, rope);
 
-	return [...visited, ...(remainingInstructions.length ? listVisitedCells(remainingInstructions, newNode) : [])];
+	return [
+		...visited,
+		...(remainingInstructions.length ? listVisitedCells(remainingInstructions, ropeLength, newRope) : []),
+	];
 };
+
+console.timeEnd('init');
+console.time('part 1');
 
 const visitedCellsWithoutFilter = listVisitedCells(instructions);
 const visitedCells = visitedCellsWithoutFilter.filter(
@@ -100,6 +112,14 @@ console.log(`You have visited ${visitedCellsCount.toString().yellow} cells.`);
 
 console.timeEnd('part 1');
 console.time('part 2');
+
+const part2VisitedCellsWithoutFilter = listVisitedCells(instructions, 10);
+const part2VisitedCells = part2VisitedCellsWithoutFilter.filter(
+	(cell, index) => index === part2VisitedCellsWithoutFilter.findIndex(({ x, y }) => cell.x === x && cell.y === y)
+);
+const part2VisitedCellsCount = part2VisitedCells.length;
+
+console.log(`With the long ropes, you have visited ${part2VisitedCellsCount.toString().green} cells.`);
 
 console.timeEnd('part 2');
 console.timeEnd('main');
